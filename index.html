@@ -35,7 +35,7 @@
             color: var(--primary-gold);
             font-weight: 300;
             letter-spacing: 2px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             border-bottom: 1px solid var(--light-gold);
             padding-bottom: 10px;
         }
@@ -48,50 +48,46 @@
         }
 
         .controls, .record-section {
-            margin-top: 20px;
+            margin-top: 15px;
             background: var(--light-gold);
             padding: 15px;
             border-radius: 15px;
-            display: grid;
+            display: flex;
+            flex-direction: column;
             gap: 10px;
         }
 
         button {
-            padding: 12px 20px;
+            padding: 12px 15px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 14px;
             font-weight: 500;
+            flex: 1;
         }
 
         .btn-gold { background-color: var(--primary-gold); color: white; }
         .btn-silver { background-color: var(--accent-silver); color: var(--text-dark); }
         .btn-record { background-color: #e74c3c; color: white; }
         .btn-play-rec { background-color: #2ecc71; color: white; }
+        .btn-save { background-color: #c5a02e; color: white; }
 
-        button:active { transform: scale(0.95); opacity: 0.8; }
+        .row { display: flex; gap: 8px; justify-content: center; width: 100%; }
 
         .time-display {
             font-family: monospace;
             font-size: 18px;
-            margin: 10px 0;
             color: var(--primary-gold);
         }
 
-        input[type="file"] { margin: 15px 0; font-size: 12px; }
-
         .status-dot {
-            height: 10px;
-            width: 10px;
-            background-color: #bbb;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 5px;
+            height: 10px; width: 10px; background-color: #bbb;
+            border-radius: 50%; display: inline-block; margin-right: 5px;
         }
         .recording { background-color: #e74c3c; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     </style>
 </head>
 <body>
@@ -101,31 +97,34 @@
     
     <video id="mainVideo" controls playsinline></video>
     
-    <input type="file" id="fileInput" accept="video/*">
+    <input type="file" id="fileInput" accept="video/*" style="margin: 15px 0;">
 
+    <!-- 循环与保存区 -->
     <div class="controls">
         <div class="time-display">
             <span id="startTime">0.0</span>s - <span id="endTime">0.0</span>s
         </div>
-        <div style="display: flex; gap: 5px; justify-content: center;">
+        <div class="row">
             <button class="btn-silver" onclick="setPoint('start')">📍 定起点</button>
             <button class="btn-silver" onclick="setPoint('end')">📍 定终点</button>
         </div>
-        <button id="loopBtn" class="btn-gold" onclick="toggleLoop()">开启 A-B 循环跟读</button>
+        <div class="row">
+            <button id="loopBtn" class="btn-gold" onclick="toggleLoop()">开启循环跟读</button>
+            <button class="btn-save" onclick="saveSnippet()">💾 保存片段</button>
+        </div>
         <select id="speed" onchange="changeSpeed()" style="padding: 10px; border-radius: 8px; border: 1px solid var(--primary-gold);">
             <option value="0.5">0.5x 慢速</option>
             <option value="0.75">0.75x 稍慢</option>
-            <option value="1.0" selected>1.0x 正常</option>
-            <option value="1.25">1.25x 稍快</option>
+            <option value="1.0" selected>1.0x 正常速度</option>
         </select>
     </div>
 
-    <!-- 录音对比区 -->
+    <!-- 录音自检区 -->
     <div class="record-section">
-        <div style="font-size: 13px; color: #666; margin-bottom: 5px;">
+        <div style="font-size: 13px; color: #666;">
             <span id="recordStatus" class="status-dot"></span> <span id="statusText">录音已就绪</span>
         </div>
-        <div style="display: flex; gap: 5px; justify-content: center;">
+        <div class="row">
             <button id="recordBtn" class="btn-record" onclick="toggleRecord()">🎤 开始录制</button>
             <button id="playRecordBtn" class="btn-play-rec" onclick="playLastRecord()" disabled>▶️ 回放自读</button>
         </div>
@@ -135,19 +134,11 @@
 <script>
     const video = document.getElementById('mainVideo');
     const fileInput = document.getElementById('fileInput');
-    let start = 0;
-    let end = 0;
-    let isLooping = false;
+    let start = 0, end = 0, isLooping = false;
+    let mediaRecorder, audioChunks = [], audioUrl, isRecording = false;
 
-    // 录音相关变量
-    let mediaRecorder;
-    let audioChunks = [];
-    let audioUrl;
-    let isRecording = false;
-
-    fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        video.src = URL.createObjectURL(file);
+    fileInput.addEventListener('change', (e) => {
+        video.src = URL.createObjectURL(e.target.files[0]);
     });
 
     function setPoint(type) {
@@ -163,52 +154,52 @@
     function toggleLoop() {
         isLooping = !isLooping;
         const btn = document.getElementById('loopBtn');
-        if (isLooping) {
-            btn.innerText = "停止循环";
-            btn.style.background = "#333";
-            video.currentTime = start;
-            video.play();
-        } else {
-            btn.innerText = "开启 A-B 循环跟读";
-            btn.style.background = "var(--primary-gold)";
-        }
+        btn.innerText = isLooping ? "停止循环" : "开启循环跟读";
+        btn.style.background = isLooping ? "#333" : "var(--primary-gold)";
+        if(isLooping) { video.currentTime = start; video.play(); }
     }
 
-    video.addEventListener('timeupdate', function() {
-        if (isLooping && end > start) {
-            if (video.currentTime >= end) {
-                video.currentTime = start;
-            }
+    video.addEventListener('timeupdate', () => {
+        if (isLooping && end > start && video.currentTime >= end) {
+            video.currentTime = start;
         }
     });
 
-    function changeSpeed() {
-        video.playbackRate = document.getElementById('speed').value;
+    function changeSpeed() { video.playbackRate = document.getElementById('speed').value; }
+
+    function saveSnippet() {
+        const name = prompt("给这个片段起个名字（例如：Friends_S1E1_01）");
+        if (name) {
+            const data = `片段：${name} | 时间轴：${start.toFixed(1)}s - ${end.toFixed(1)}s`;
+            alert("已保存到本地！\n" + data);
+            console.log("Saved:", data);
+        }
     }
 
-    // 录音功能实现
     async function toggleRecord() {
         const recordBtn = document.getElementById('recordBtn');
         const statusDot = document.getElementById('recordStatus');
         const statusText = document.getElementById('statusText');
 
         if (!isRecording) {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            audioChunks = [];
-
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            mediaRecorder.onstop = () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                audioUrl = URL.createObjectURL(audioBlob);
-                document.getElementById('playRecordBtn').disabled = false;
-            };
-
-            mediaRecorder.start();
-            isRecording = true;
-            recordBtn.innerText = "⏹ 停止录制";
-            statusDot.classList.add('recording');
-            statusText.innerText = "正在录音...";
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    audioUrl = URL.createObjectURL(audioBlob);
+                    document.getElementById('playRecordBtn').disabled = false;
+                };
+                mediaRecorder.start();
+                isRecording = true;
+                recordBtn.innerText = "⏹ 停止录制";
+                statusDot.classList.add('recording');
+                statusText.innerText = "正在录制自读...";
+            } catch (err) {
+                alert("无法访问麦克风，请检查权限设置。");
+            }
         } else {
             mediaRecorder.stop();
             isRecording = false;
@@ -218,13 +209,7 @@
         }
     }
 
-    function playLastRecord() {
-        if (audioUrl) {
-            const audio = new Audio(audioUrl);
-            audio.play();
-        }
-    }
+    function playLastRecord() { if (audioUrl) new Audio(audioUrl).play(); }
 </script>
-
 </body>
 </html>
