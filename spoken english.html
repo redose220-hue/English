@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MOVEN 口语实验室</title>
+    <style>
+        :root { --gold: #D4AF37; --white: #FFFFFF; --dark: #1a1a1a; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8f9fa; margin: 0; padding: 10px; padding-bottom: 50px; }
+        .container { max-width: 600px; margin: 0 auto; background: var(--white); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        video { width: 100%; display: block; background: #000; aspect-ratio: 16 / 9; }
+        .controls { padding: 15px; }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        button { padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-gold { background: var(--gold); color: white; }
+        .btn-dark { background: var(--dark); color: white; }
+        .btn-loop.active { background: #ff4757; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        .time-box { display: flex; align-items: center; justify-content: space-between; background: #eee; padding: 10px; border-radius: 8px; margin-top: 10px; }
+        .time-input { width: 60px; border: none; background: transparent; text-align: center; font-size: 16px; font-weight: bold; }
+        .history { margin-top: 20px; padding: 0 10px; }
+        .history-item { background: white; padding: 12px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--gold); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <video id="v" controls playsinline></video>
+    
+    <div class="controls">
+        <input type="file" id="f" accept="video/*,audio/*" style="width: 100%; margin-bottom: 10px;">
+        
+        <select id="speed" style="width:100%; padding: 8px; border-radius: 8px; margin-bottom: 10px;">
+            <option value="0.5">0.5x 慢速</option>
+            <option value="0.8">0.8x 纠音</option>
+            <option value="1.0" selected>1.0x 正常</option>
+            <option value="1.2">1.2x 快速</option>
+        </select>
+
+        <div class="time-box">
+            <button onclick="setStart()" style="padding:5px 10px;">📍定起点</button>
+            <input type="number" id="sT" class="time-input" value="0" step="0.1">
+            <span>-</span>
+            <input type="number" id="eT" class="time-input" value="10" step="0.1">
+            <button onclick="setEnd()" style="padding:5px 10px;">📍定终点</button>
+        </div>
+
+        <div class="btn-group">
+            <button id="lB" class="btn-dark" onclick="toggleLoop()">开启循环跟读</button>
+            <button class="btn-gold" onclick="saveNote()">💾 保存片段</button>
+        </div>
+    </div>
+</div>
+
+<div class="history" id="notes"></div>
+
+<script>
+    const v = document.getElementById('v');
+    const sT = document.getElementById('sT');
+    const eT = document.getElementById('eT');
+    const lB = document.getElementById('lB');
+    let looping = false;
+
+    document.getElementById('f').onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) v.src = URL.createObjectURL(file);
+    };
+
+    document.getElementById('speed').onchange = (e) => v.playbackRate = e.target.value;
+
+    function setStart() { sT.value = v.currentTime.toFixed(1); }
+    function setEnd() { eT.value = v.currentTime.toFixed(1); }
+
+    function toggleLoop() {
+        looping = !looping;
+        lB.innerText = looping ? "停止循环" : "开启循环跟读";
+        lB.classList.toggle('active', looping);
+        if(looping) { v.currentTime = parseFloat(sT.value); v.play(); }
+    }
+
+    v.ontimeupdate = () => {
+        if (looping && (v.currentTime >= parseFloat(eT.value) || v.currentTime < parseFloat(sT.value))) {
+            v.currentTime = parseFloat(sT.value);
+        }
+    };
+
+    function saveNote() {
+        const title = prompt("片段名称", "Friends Phrase");
+        if(!title) return;
+        const note = { title, start: sT.value, end: eT.value, time: new Date().toLocaleDateString() };
+        let notes = JSON.parse(localStorage.getItem('my_eng_notes') || '[]');
+        notes.push(note);
+        localStorage.setItem('my_eng_notes', JSON.stringify(notes));
+        render();
+    }
+
+    function render() {
+        const notes = JSON.parse(localStorage.getItem('my_eng_notes') || '[]');
+        document.getElementById('notes').innerHTML = notes.map((n, i) => `
+            <div class="history-item">
+                <div><b>${n.title}</b><br><small>${n.start}s - ${n.end}s</small></div>
+                <button onclick="loadNote(${n.start}, ${n.end})" style="background:var(--gold); color:white; border-radius:5px;">练这个</button>
+            </div>
+        `).reverse().join('');
+    }
+
+    window.loadNote = (s, e) => {
+        sT.value = s; eT.value = e; v.currentTime = s;
+        if(!looping) toggleLoop();
+    };
+
+    render();
+</script>
+</body>
+</html>
