@@ -2,96 +2,87 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MOVEN Oral Lab Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MOVEN Oral Lab Mobile</title>
     <style>
         :root {
             --primary-gold: #D4AF37;
             --light-gold: #F4EBD0;
             --bg-white: #FFFFFF;
             --text-dark: #333333;
-            --accent-silver: #E5E4E2;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, system-ui, sans-serif;
             background-color: var(--bg-white);
             color: var(--text-dark);
-            margin: 0; padding-bottom: 50px;
+            margin: 0; padding: 10px;
             display: flex; flex-direction: column; align-items: center;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .container { width: 95%; max-width: 800px; padding: 20px; text-align: center; }
-        h1 { color: var(--primary-gold); font-weight: 300; letter-spacing: 2px; border-bottom: 1px solid var(--light-gold); padding-bottom: 10px; }
+        .container { width: 100%; max-width: 500px; text-align: center; }
+        h1 { color: var(--primary-gold); font-size: 20px; letter-spacing: 1px; margin-bottom: 10px; }
 
-        .video-wrapper { position: relative; width: 100%; border-radius: 12px; overflow: hidden; background: #000; aspect-ratio: 16/9; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        video { width: 100%; height: 100%; }
-        .blind-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.2); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); display: none; align-items: center; justify-content: center; z-index: 100; color: var(--primary-gold); font-weight: bold; pointer-events: none; }
+        /* 视频容器适配手机 */
+        .video-wrapper { position: relative; width: 100%; border-radius: 12px; overflow: hidden; background: #000; aspect-ratio: 16/9; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        video { width: 100%; height: 100%; object-fit: contain; }
+        .blind-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.4); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); display: none; align-items: center; justify-content: center; z-index: 10; color: var(--primary-gold); font-weight: bold; font-size: 18px; }
 
-        .controls, .record-section, .list-section { margin-top: 15px; background: var(--light-gold); padding: 15px; border-radius: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .controls, .record-section, .list-section { margin-top: 12px; background: var(--light-gold); padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; }
 
-        button { padding: 12px 15px; border: none; border-radius: 8px; cursor: pointer; transition: 0.3s; font-size: 14px; font-weight: 500; }
+        button { padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; -webkit-appearance: none; }
         .btn-gold { background: var(--primary-gold); color: white; }
-        .btn-silver { background: var(--accent-silver); color: var(--text-dark); }
+        .btn-silver { background: #E5E4E2; color: var(--text-dark); }
         .btn-record { background: #e74c3c; color: white; }
-        .btn-blind-toggle { background: #333; color: var(--primary-gold); border: 2px solid var(--primary-gold); font-weight: bold; }
+        
+        .row { display: flex; gap: 6px; justify-content: center; width: 100%; flex-wrap: wrap; }
+        .time-display { font-family: monospace; font-size: 16px; color: var(--primary-gold); margin: 5px 0; }
 
-        .row { display: flex; gap: 8px; justify-content: center; width: 100%; flex-wrap: wrap; }
-        .time-display { font-family: monospace; font-size: 18px; color: var(--primary-gold); }
+        #waveform { width: 100%; height: 60px; background: #fff; border-radius: 8px; display: none; }
 
-        /* 听写输入框样式 */
-        .cloze-input { border: none; border-bottom: 2px solid var(--primary-gold); background: transparent; width: 80px; text-align: center; font-family: inherit; font-size: 14px; outline: none; transition: 0.3s; }
-        .cloze-input.correct { border-bottom-color: #2ecc71; color: #2ecc71; font-weight: bold; }
-
-        /* 波形图画布 */
-        #waveform { width: 100%; height: 60px; background: #fff; border-radius: 10px; display: none; }
-
-        .snippet-item { background: #fff; border: 1px solid var(--light-gold); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .snippet-item { background: #fff; border: 1px solid var(--light-gold); padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
         .snippet-info { flex: 1; text-align: left; }
-        .snippet-info b { color: var(--primary-gold); cursor: pointer; }
-        .snippet-info p { font-size: 14px; color: #555; margin: 8px 0; line-height: 1.5; }
+        .snippet-info b { color: var(--primary-gold); font-size: 15px; }
+        
+        input[type="file"] { font-size: 12px; width: 100%; margin: 10px 0; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>MOVEN ORAL LAB PRO</h1>
+    <h1>MOVEN ORAL LAB</h1>
     
     <div class="video-wrapper">
-        <div id="blindOverlay" class="blind-overlay">🙈 听觉专注模式</div>
-        <video id="mainVideo" controls playsinline></video>
+        <div id="blindOverlay" class="blind-overlay">🙈 听力磨练中...</div>
+        <video id="mainVideo" controls playsinline webkit-playsinline></video>
     </div>
     
-    <input type="file" id="fileInput" accept="video/*" style="margin: 15px 0;">
+    <input type="file" id="fileInput" accept="video/*">
 
     <div class="controls">
-        <div class="row"><button id="blindBtn" class="btn-blind-toggle" onclick="toggleBlind()">🙈 开启盲听模式</button></div>
+        <button id="blindBtn" style="background:#333; color:var(--primary-gold);" onclick="toggleBlind()">🙈 开启盲听模式</button>
         <div class="row">
-            <button class="btn-silver" onclick="skip(-5)">⏪ -5s</button>
             <button class="btn-silver" onclick="skip(-2)">⏪ -2s</button>
             <button class="btn-silver" onclick="setPoint('start')">📍 起点</button>
             <button class="btn-silver" onclick="setPoint('end')">📍 终点</button>
         </div>
         <div class="time-display"><span id="startTime">0.0</span>s - <span id="endTime">0.0</span>s</div>
-        <div class="row">
-            <button id="loopBtn" class="btn-gold" onclick="toggleLoop()">开启循环跟读</button>
-            <button class="btn-gold" style="background:#c5a02e;" onclick="saveSnippet()">💾 存为听写片段</button>
-        </div>
-        <select id="speed" onchange="changeSpeed()" style="padding:10px; border-radius:8px; border:1px solid var(--primary-gold);">
-            <option value="0.5">0.5x</option><option value="0.75">0.75x</option><option value="1.0" selected>1.0x</option>
-        </select>
+        <button id="loopBtn" class="btn-gold" onclick="toggleLoop()">开启循环跟读</button>
+        <button class="btn-gold" style="background:#c5a02e;" onclick="saveSnippet()">💾 保存片段</button>
     </div>
 
     <div class="record-section">
         <canvas id="waveform"></canvas>
-        <div style="font-size: 12px; color: #999;"><span id="statusText">录音实时波形</span></div>
         <div class="row">
             <button id="recordBtn" class="btn-record" onclick="toggleRecord()">🎤 开始录制</button>
-            <button id="playRecordBtn" style="background:#2ecc71; color:white;" onclick="playLastRecord()" disabled>▶️ 回放自读</button>
+            <button id="playRecordBtn" style="background:#2ecc71; color:white;" onclick="playLastRecord()" disabled>▶️ 回放</button>
         </div>
     </div>
 
-    <div id="snippetList" class="list-section"></div>
+    <div id="snippetList" class="list-section">
+        <p style="font-size:12px; color:#999;">暂无已存片段</p>
+    </div>
 </div>
 
 <script>
@@ -104,8 +95,13 @@
     let start = 0, end = 0, isLooping = false, isBlind = false;
     let mediaRecorder, audioCtx, analyser, dataArray, animationId, audioUrl, isRecording = false;
 
-    window.onload = loadSnippets;
-    fileInput.addEventListener('change', (e) => { video.src = URL.createObjectURL(e.target.files[0]); });
+    // 页面加载即刷新列表
+    window.onload = () => { loadSnippets(); };
+
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) video.src = URL.createObjectURL(file);
+    });
 
     function toggleBlind() {
         isBlind = !isBlind;
@@ -122,79 +118,82 @@
 
     function toggleLoop() {
         isLooping = !isLooping;
-        const btn = document.getElementById('loopBtn');
-        btn.innerText = isLooping ? "停止循环" : "开启循环跟读";
+        document.getElementById('loopBtn').innerText = isLooping ? "停止循环" : "开启循环跟读";
         if(isLooping) { video.currentTime = start; video.play(); }
     }
 
-    video.addEventListener('timeupdate', () => { if (isLooping && end > start && video.currentTime >= end) video.currentTime = start; });
-    function changeSpeed() { video.playbackRate = document.getElementById('speed').value; }
-
-    // 听写转换逻辑：将 (word) 转换为输入框
-    function renderNote(text) {
-        return text.replace(/\((.*?)\)/g, (match, word) => {
-            return `<input type="text" class="cloze-input" data-answer="${word.toLowerCase()}" oninput="checkAnswer(this)" placeholder="...">`;
-        });
-    }
-
-    function checkAnswer(input) {
-        if (input.value.toLowerCase().trim() === input.getAttribute('data-answer')) {
-            input.classList.add('correct');
-        } else {
-            input.classList.remove('correct');
-        }
-    }
+    video.addEventListener('timeupdate', () => {
+        if (isLooping && end > start && video.currentTime >= end) video.currentTime = start;
+    });
 
     function saveSnippet() {
-        const name = prompt("片段名称："); if (!name) return;
-        const note = prompt("输入台词，关键词用括号括起来。例如：I'll be (there) for you.") || "";
-        const snippet = { id: Date.now(), name, note, start, end };
-        let s = JSON.parse(localStorage.getItem('moven_snippets') || '[]');
+        const name = prompt("片段名称：");
+        if (!name) return;
+        const snippet = { id: Date.now(), name, start, end };
+        let s = JSON.parse(localStorage.getItem('moven_mobile_snippets') || '[]');
         s.unshift(snippet);
-        localStorage.setItem('moven_snippets', JSON.stringify(s));
+        localStorage.setItem('moven_mobile_snippets', JSON.stringify(s));
         loadSnippets();
     }
 
     function loadSnippets() {
         const list = document.getElementById('snippetList');
-        const snippets = JSON.parse(localStorage.getItem('moven_snippets') || '[]');
+        const snippets = JSON.parse(localStorage.getItem('moven_mobile_snippets') || '[]');
+        if (snippets.length === 0) {
+            list.innerHTML = '<p style="font-size:12px; color:#999;">暂无已存片段</p>';
+            return;
+        }
         list.innerHTML = snippets.map(s => `
             <div class="snippet-item">
                 <div class="snippet-info">
-                    <b onclick="editSnippet(${s.id})">${s.name}</b>
-                    <p>${renderNote(s.note)}</p>
-                    <small style="color:#aaa;">${s.start.toFixed(1)}s - ${s.end.toFixed(1)}s</small>
+                    <b>${s.name}</b><br>
+                    <small>${s.start.toFixed(1)}s - ${s.end.toFixed(1)}s</small>
                 </div>
-                <div style="display:flex; flex-direction:column; gap:5px;">
-                    <button class="btn-practice" style="padding:5px 10px;" onclick="practiceSnippet(${s.start}, ${s.end})">练这个</button>
-                    <button onclick="deleteSnippet(${s.id})" style="background:none; color:#ff4d4d; border:none; font-size:18px;">×</button>
-                </div>
+                <button class="btn-silver" style="padding:5px 10px;" onclick="practiceSnippet(${s.start}, ${s.end})">练</button>
+                <button onclick="deleteSnippet(${s.id})" style="background:none; color:#ff4d4d; border:none; font-size:20px; margin-left:10px;">×</button>
             </div>
         `).join('');
     }
 
-    function practiceSnippet(s, e) { start = s; end = e; document.getElementById('startTime').innerText = s.toFixed(1); document.getElementById('endTime').innerText = e.toFixed(1); isLooping = false; toggleLoop(); }
+    function practiceSnippet(s, e) {
+        start = s; end = e;
+        document.getElementById('startTime').innerText = s.toFixed(1);
+        document.getElementById('endTime').innerText = e.toFixed(1);
+        isLooping = true;
+        document.getElementById('loopBtn').innerText = "停止循环";
+        video.currentTime = s;
+        video.play();
+    }
 
     async function toggleRecord() {
         if (!isRecording) {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const source = audioCtx.createMediaStreamSource(stream);
-            analyser = audioCtx.createAnalyser();
-            analyser.fftSize = 256;
-            source.connect(analyser);
-            dataArray = new Uint8Array(analyser.frequencyBinCount);
+            try {
+                // 解决手机端 AudioContext 必须由点击触发的问题
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') await audioCtx.resume();
 
-            mediaRecorder = new MediaRecorder(stream);
-            const chunks = [];
-            mediaRecorder.ondataavailable = e => chunks.push(e.data);
-            mediaRecorder.onstop = () => { audioUrl = URL.createObjectURL(new Blob(chunks, { type: 'audio/wav' })); document.getElementById('playRecordBtn').disabled = false; };
-            
-            mediaRecorder.start();
-            isRecording = true;
-            canvas.style.display = 'block';
-            document.getElementById('recordBtn').innerText = "⏹ 停止录制";
-            drawWave();
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const source = audioCtx.createMediaStreamSource(stream);
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 128; // 手机端用更小的采样提高性能
+                source.connect(analyser);
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+                mediaRecorder = new MediaRecorder(stream);
+                const chunks = [];
+                mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'audio/mp4' }); // 手机端适配 mp4/aac 格式
+                    audioUrl = URL.createObjectURL(blob);
+                    document.getElementById('playRecordBtn').disabled = false;
+                };
+                
+                mediaRecorder.start();
+                isRecording = true;
+                canvas.style.display = 'block';
+                document.getElementById('recordBtn').innerText = "⏹ 停止";
+                drawWave();
+            } catch (err) { alert("请允许麦克风权限以录音。"); }
         } else {
             mediaRecorder.stop();
             isRecording = false;
@@ -208,18 +207,30 @@
         analyser.getByteFrequencyData(dataArray);
         ctx.fillStyle = '#fff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        const barWidth = (canvas.width / dataArray.length) * 2.5;
+        const barWidth = (canvas.width / dataArray.length) * 2;
         let x = 0;
         for (let i = 0; i < dataArray.length; i++) {
-            const barHeight = dataArray[i] / 2;
+            const barHeight = (dataArray[i] / 255) * canvas.height;
             ctx.fillStyle = '#D4AF37';
             ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-            x += barWidth + 1;
+            x += barWidth + 2;
         }
     }
 
-    function playLastRecord() { if (audioUrl) new Audio(audioUrl).play(); }
-    function deleteSnippet(id) { if(confirm("删除吗？")) { let s = JSON.parse(localStorage.getItem('moven_snippets') || '[]'); localStorage.setItem('moven_snippets', JSON.stringify(s.filter(i => i.id !== id))); loadSnippets(); } }
+    function playLastRecord() {
+        if (!audioUrl) return;
+        const audio = new Audio();
+        audio.src = audioUrl;
+        audio.play().catch(e => alert("手机端播放失败，请尝试重新录制。"));
+    }
+
+    function deleteSnippet(id) {
+        if(confirm("删除片段？")) {
+            let s = JSON.parse(localStorage.getItem('moven_mobile_snippets') || '[]');
+            localStorage.setItem('moven_mobile_snippets', JSON.stringify(s.filter(i => i.id !== id)));
+            loadSnippets();
+        }
+    }
 </script>
 </body>
 </html>
