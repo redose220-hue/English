@@ -26,14 +26,24 @@
         h1 { color: var(--primary-gold); font-weight: 300; letter-spacing: 2px; margin-bottom: 20px; border-bottom: 1px solid var(--light-gold); padding-bottom: 10px; }
 
         /* 视频容器与盲听蒙层 */
-        .video-wrapper { position: relative; width: 100%; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: #000; }
-        video { width: 100%; display: block; }
+        .video-wrapper { 
+            position: relative; 
+            width: 100%; 
+            border-radius: 12px; 
+            overflow: hidden; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            background: #000;
+            aspect-ratio: 16 / 9; /* 锁定比例防止塌陷 */
+        }
+        video { width: 100%; height: 100%; display: block; }
+        
         .blind-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
             display: none; align-items: center; justify-content: center;
-            z-index: 10; color: var(--primary-gold); font-size: 18px; letter-spacing: 2px;
+            z-index: 100; color: var(--primary-gold); font-size: 20px; 
+            font-weight: bold; letter-spacing: 2px; pointer-events: none;
         }
 
         .controls, .record-section, .list-section { margin-top: 15px; background: var(--light-gold); padding: 15px; border-radius: 15px; display: flex; flex-direction: column; gap: 10px; }
@@ -45,11 +55,18 @@
         .btn-record { background-color: #e74c3c; color: white; }
         .btn-play-rec { background-color: #2ecc71; color: white; }
         .btn-save { background-color: #c5a02e; color: white; }
-        .btn-blind { background-color: #333; color: var(--primary-gold); border: 1px solid var(--primary-gold); }
+        
+        /* 盲听按钮专用样式 */
+        .btn-blind-toggle { 
+            background-color: #333; 
+            color: var(--primary-gold); 
+            border: 2px solid var(--primary-gold); 
+            font-weight: bold;
+        }
 
-        .row { display: flex; gap: 8px; justify-content: center; width: 100%; }
+        .row { display: flex; gap: 8px; justify-content: center; width: 100%; flex-wrap: wrap; }
 
-        .time-display { font-family: monospace; font-size: 18px; color: var(--primary-gold); }
+        .time-display { font-family: monospace; font-size: 18px; color: var(--primary-gold); margin: 5px 0; }
 
         .list-section { background: transparent; padding: 0; border-radius: 0; }
         .snippet-item {
@@ -61,7 +78,6 @@
         .snippet-info { flex: 1; cursor: pointer; }
         .snippet-info b { display: block; font-size: 16px; margin-bottom: 4px; color: var(--primary-gold); }
         .snippet-info p { font-size: 14px; color: #555; margin: 4px 0; font-style: italic; }
-        .snippet-info span { font-size: 11px; color: #aaa; }
         
         .btn-practice { background: var(--primary-gold); color: white; padding: 8px 15px; font-size: 12px; flex: none; width: auto; }
         .btn-delete { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; margin-left: 5px; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: none; }
@@ -77,30 +93,40 @@
     <h1>MOVEN ORAL LAB</h1>
     
     <div class="video-wrapper">
-        <div id="blindOverlay" class="blind-overlay">🙈 盲听模式已开启</div>
+        <div id="blindOverlay" class="blind-overlay">🙈 盲听模式中</div>
         <video id="mainVideo" controls playsinline></video>
     </div>
     
     <input type="file" id="fileInput" accept="video/*" style="margin: 15px 0;">
 
     <div class="controls">
-        <!-- 盲听与快退 -->
+        <!-- 盲听模式 这里的按钮这次一定要看见 -->
         <div class="row">
-            <button id="blindBtn" class="btn-blind" onclick="toggleBlind()">🙈 开启盲听</button>
-            <button class="btn-silver" onclick="skip(-3)">⏪ 快退 3s</button>
+            <button id="blindBtn" class="btn-blind-toggle" onclick="toggleBlind()">🙈 开启盲听模式</button>
+        </div>
+
+        <div class="row">
+            <button class="btn-silver" onclick="skip(-5)">⏪ 快退 5s</button>
+            <button class="btn-silver" onclick="skip(-2)">⏪ 快退 2s</button>
         </div>
 
         <div class="time-display"><span id="startTime">0.0</span>s - <span id="endTime">0.0</span>s</div>
+        
         <div class="row">
             <button class="btn-silver" onclick="setPoint('start')">📍 定起点</button>
             <button class="btn-silver" onclick="setPoint('end')">📍 定终点</button>
         </div>
+
         <div class="row">
             <button id="loopBtn" class="btn-gold" onclick="toggleLoop()">开启循环跟读</button>
-            <button class="btn-save" onclick="saveSnippet()">💾 保存并备注</button>
+            <button class="btn-save" onclick="saveSnippet()">💾 保存片段备注</button>
         </div>
-        <select id="speed" onchange="changeSpeed()" style="padding: 10px; border-radius: 8px; border: 1px solid var(--primary-gold);">
-            <option value="0.5">0.5x 慢速</option><option value="0.75">0.75x 稍慢</option><option value="1.0" selected>1.0x 正常速度</option>
+
+        <select id="speed" onchange="changeSpeed()" style="padding: 10px; border-radius: 8px; border: 1px solid var(--primary-gold); background: white;">
+            <option value="0.5">0.5x 慢速</option>
+            <option value="0.75">0.75x 稍慢</option>
+            <option value="1.0" selected>1.0x 正常</option>
+            <option value="1.25">1.25x 快速</option>
         </select>
     </div>
 
@@ -120,25 +146,36 @@
     const fileInput = document.getElementById('fileInput');
     const blindOverlay = document.getElementById('blindOverlay');
     const blindBtn = document.getElementById('blindBtn');
+    
     let start = 0, end = 0, isLooping = false, isBlind = false;
     let mediaRecorder, audioChunks = [], audioUrl, isRecording = false;
 
     window.onload = loadSnippets;
-    fileInput.addEventListener('change', (e) => { video.src = URL.createObjectURL(e.target.files[0]); });
 
+    fileInput.addEventListener('change', (e) => { 
+        const file = e.target.files[0];
+        if (file) video.src = URL.createObjectURL(file); 
+    });
+
+    // 盲听模式切换
     function toggleBlind() {
         isBlind = !isBlind;
         blindOverlay.style.display = isBlind ? 'flex' : 'none';
-        blindBtn.innerText = isBlind ? "👁️ 关闭盲听" : "🙈 开启盲听";
-        blindBtn.style.background = isBlind ? "var(--primary-gold)" : "#333";
+        blindBtn.innerText = isBlind ? "👁️ 关闭盲听模式" : "🙈 开启盲听模式";
+        blindBtn.style.backgroundColor = isBlind ? "var(--primary-gold)" : "#333";
         blindBtn.style.color = isBlind ? "#fff" : "var(--primary-gold)";
     }
 
     function skip(seconds) { video.currentTime = Math.max(0, video.currentTime + seconds); }
 
     function setPoint(type) {
-        if (type === 'start') { start = video.currentTime; document.getElementById('startTime').innerText = start.toFixed(1); }
-        else { end = video.currentTime; document.getElementById('endTime').innerText = end.toFixed(1); }
+        if (type === 'start') { 
+            start = video.currentTime; 
+            document.getElementById('startTime').innerText = start.toFixed(1); 
+        } else { 
+            end = video.currentTime; 
+            document.getElementById('endTime').innerText = end.toFixed(1); 
+        }
     }
 
     function toggleLoop() {
@@ -149,13 +186,15 @@
         if(isLooping) { video.currentTime = start; video.play(); }
     }
 
-    video.addEventListener('timeupdate', () => { if (isLooping && end > start && video.currentTime >= end) video.currentTime = start; });
+    video.addEventListener('timeupdate', () => { 
+        if (isLooping && end > start && video.currentTime >= end) video.currentTime = start; 
+    });
 
     function changeSpeed() { video.playbackRate = document.getElementById('speed').value; }
 
     function saveSnippet() {
         const name = prompt("片段名称："); if (!name) return;
-        const note = prompt("笔记/台词（可不填）：") || "";
+        const note = prompt("备注/台词（可不填）：") || "";
         const snippet = { id: Date.now(), name: name, note: note, start: start, end: end };
         let snippets = JSON.parse(localStorage.getItem('moven_snippets') || '[]');
         snippets.unshift(snippet);
@@ -171,7 +210,7 @@
                 <div class="snippet-info" onclick="editSnippet(${s.id})">
                     <b>${s.name}</b>
                     <p>${s.note ? s.note : '点击添加备注...'}</p>
-                    <span>${s.start.toFixed(1)}s - ${s.end.toFixed(1)}s</span>
+                    <span style="font-size:11px; color:#aaa;">${s.start.toFixed(1)}s - ${s.end.toFixed(1)}s</span>
                 </div>
                 <div style="display:flex; align-items:center;">
                     <button class="btn-practice" onclick="practiceSnippet(${s.start}, ${s.end})">练这个</button>
@@ -185,8 +224,8 @@
         let snippets = JSON.parse(localStorage.getItem('moven_snippets') || '[]');
         const idx = snippets.findIndex(s => s.id === id);
         if (idx === -1) return;
-        const nName = prompt("片段名称：", snippets[idx].name); if (nName === null) return;
-        const nNote = prompt("备注/台词：", snippets[idx].note); if (nNote === null) return;
+        const nName = prompt("修改片段名称：", snippets[idx].name); if (nName === null) return;
+        const nNote = prompt("修改备注/台词：", snippets[idx].note); if (nNote === null) return;
         snippets[idx].name = nName; snippets[idx].note = nNote;
         localStorage.setItem('moven_snippets', JSON.stringify(snippets));
         loadSnippets();
@@ -223,7 +262,7 @@
                 };
                 mediaRecorder.start();
                 isRecording = true; recordBtn.innerText = "⏹ 停止录制"; statusDot.classList.add('recording'); statusText.innerText = "正在录制...";
-            } catch (err) { alert("权限不足"); }
+            } catch (err) { alert("请允许使用麦克风"); }
         } else {
             mediaRecorder.stop(); isRecording = false; recordBtn.innerText = "🎤 开始录制"; statusDot.classList.remove('recording'); statusText.innerText = "已保存";
         }
