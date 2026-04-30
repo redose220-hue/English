@@ -17,56 +17,19 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-white);
             color: var(--text-dark);
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
+            margin: 0; padding-bottom: 50px;
+            display: flex; flex-direction: column; align-items: center;
         }
 
-        .container {
-            width: 95%;
-            max-width: 800px;
-            padding: 20px;
-            text-align: center;
-        }
+        .container { width: 95%; max-width: 800px; padding: 20px; text-align: center; }
 
-        h1 {
-            color: var(--primary-gold);
-            font-weight: 300;
-            letter-spacing: 2px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--light-gold);
-            padding-bottom: 10px;
-        }
+        h1 { color: var(--primary-gold); font-weight: 300; letter-spacing: 2px; margin-bottom: 20px; border-bottom: 1px solid var(--light-gold); padding-bottom: 10px; }
 
-        video {
-            width: 100%;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            background: #000;
-        }
+        video { width: 100%; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: #000; }
 
-        .controls, .record-section {
-            margin-top: 15px;
-            background: var(--light-gold);
-            padding: 15px;
-            border-radius: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        .controls, .record-section, .list-section { margin-top: 15px; background: var(--light-gold); padding: 15px; border-radius: 15px; display: flex; flex-direction: column; gap: 10px; }
 
-        button {
-            padding: 12px 15px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 14px;
-            font-weight: 500;
-            flex: 1;
-        }
+        button { padding: 12px 15px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; font-size: 14px; font-weight: 500; flex: 1; }
 
         .btn-gold { background-color: var(--primary-gold); color: white; }
         .btn-silver { background-color: var(--accent-silver); color: var(--text-dark); }
@@ -76,16 +39,22 @@
 
         .row { display: flex; gap: 8px; justify-content: center; width: 100%; }
 
-        .time-display {
-            font-family: monospace;
-            font-size: 18px;
-            color: var(--primary-gold);
-        }
+        .time-display { font-family: monospace; font-size: 18px; color: var(--primary-gold); }
 
-        .status-dot {
-            height: 10px; width: 10px; background-color: #bbb;
-            border-radius: 50%; display: inline-block; margin-right: 5px;
+        /* 片段列表样式 */
+        .list-section { background: transparent; padding: 0; border-radius: 0; }
+        .snippet-item {
+            background: #fff; border: 1px solid var(--light-gold);
+            padding: 15px; border-radius: 10px; margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center;
+            text-align: left; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
+        .snippet-info b { display: block; font-size: 16px; margin-bottom: 4px; }
+        .snippet-info span { font-size: 12px; color: #888; }
+        .btn-practice { background: var(--primary-gold); color: white; padding: 8px 15px; font-size: 12px; flex: none; width: auto; }
+        .btn-delete { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; margin-left: 5px; width: auto; flex: none; padding: 8px; }
+
+        .status-dot { height: 10px; width: 10px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 5px; }
         .recording { background-color: #e74c3c; animation: pulse 1s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     </style>
@@ -99,11 +68,8 @@
     
     <input type="file" id="fileInput" accept="video/*" style="margin: 15px 0;">
 
-    <!-- 循环与保存区 -->
     <div class="controls">
-        <div class="time-display">
-            <span id="startTime">0.0</span>s - <span id="endTime">0.0</span>s
-        </div>
+        <div class="time-display"><span id="startTime">0.0</span>s - <span id="endTime">0.0</span>s</div>
         <div class="row">
             <button class="btn-silver" onclick="setPoint('start')">📍 定起点</button>
             <button class="btn-silver" onclick="setPoint('end')">📍 定终点</button>
@@ -113,21 +79,21 @@
             <button class="btn-save" onclick="saveSnippet()">💾 保存片段</button>
         </div>
         <select id="speed" onchange="changeSpeed()" style="padding: 10px; border-radius: 8px; border: 1px solid var(--primary-gold);">
-            <option value="0.5">0.5x 慢速</option>
-            <option value="0.75">0.75x 稍慢</option>
-            <option value="1.0" selected>1.0x 正常速度</option>
+            <option value="0.5">0.5x 慢速</option><option value="0.75">0.75x 稍慢</option><option value="1.0" selected>1.0x 正常速度</option>
         </select>
     </div>
 
-    <!-- 录音自检区 -->
     <div class="record-section">
-        <div style="font-size: 13px; color: #666;">
-            <span id="recordStatus" class="status-dot"></span> <span id="statusText">录音已就绪</span>
-        </div>
+        <div style="font-size: 13px; color: #666;"><span id="recordStatus" class="status-dot"></span> <span id="statusText">录音已就绪</span></div>
         <div class="row">
             <button id="recordBtn" class="btn-record" onclick="toggleRecord()">🎤 开始录制</button>
             <button id="playRecordBtn" class="btn-play-rec" onclick="playLastRecord()" disabled>▶️ 回放自读</button>
         </div>
+    </div>
+
+    <!-- 片段展示列表 -->
+    <div id="snippetList" class="list-section">
+        <!-- 动态生成的片段会出现在这里 -->
     </div>
 </div>
 
@@ -136,6 +102,9 @@
     const fileInput = document.getElementById('fileInput');
     let start = 0, end = 0, isLooping = false;
     let mediaRecorder, audioChunks = [], audioUrl, isRecording = false;
+
+    // 初始化加载
+    window.onload = loadSnippets;
 
     fileInput.addEventListener('change', (e) => {
         video.src = URL.createObjectURL(e.target.files[0]);
@@ -167,15 +136,54 @@
 
     function changeSpeed() { video.playbackRate = document.getElementById('speed').value; }
 
+    // 保存片段到列表
     function saveSnippet() {
-        const name = prompt("给这个片段起个名字（例如：Friends_S1E1_01）");
-        if (name) {
-            const data = `片段：${name} | 时间轴：${start.toFixed(1)}s - ${end.toFixed(1)}s`;
-            alert("已保存到本地！\n" + data);
-            console.log("Saved:", data);
-        }
+        const name = prompt("给这个片段起个名字（例如：Friends Phrase）");
+        if (!name) return;
+
+        const snippet = { id: Date.now(), name: name, start: start, end: end };
+        let snippets = JSON.parse(localStorage.getItem('moven_snippets') || '[]');
+        snippets.push(snippet);
+        localStorage.setItem('moven_snippets', JSON.stringify(snippets));
+        
+        loadSnippets();
     }
 
+    // 渲染列表
+    function loadSnippets() {
+        const listContainer = document.getElementById('snippetList');
+        const snippets = JSON.parse(localStorage.getItem('moven_snippets') || '[]');
+        
+        listContainer.innerHTML = snippets.map(s => `
+            <div class="snippet-item">
+                <div class="snippet-info">
+                    <b>${s.name}</b>
+                    <span>${s.start.toFixed(1)}s - ${s.end.toFixed(1)}s</span>
+                </div>
+                <div style="display:flex; align-items:center;">
+                    <button class="btn-practice" onclick="practiceSnippet(${s.start}, ${s.end})">练这个</button>
+                    <button class="btn-delete" onclick="deleteSnippet(${s.id})">×</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function practiceSnippet(s, e) {
+        start = s; end = e;
+        document.getElementById('startTime').innerText = start.toFixed(1);
+        document.getElementById('endTime').innerText = end.toFixed(1);
+        isLooping = false; 
+        toggleLoop(); // 自动开始循环
+    }
+
+    function deleteSnippet(id) {
+        let snippets = JSON.parse(localStorage.getItem('moven_snippets') || '[]');
+        snippets = snippets.filter(s => s.id !== id);
+        localStorage.setItem('moven_snippets', JSON.stringify(snippets));
+        loadSnippets();
+    }
+
+    // 录音逻辑 (保持不变)
     async function toggleRecord() {
         const recordBtn = document.getElementById('recordBtn');
         const statusDot = document.getElementById('recordStatus');
@@ -196,16 +204,14 @@
                 isRecording = true;
                 recordBtn.innerText = "⏹ 停止录制";
                 statusDot.classList.add('recording');
-                statusText.innerText = "正在录制自读...";
-            } catch (err) {
-                alert("无法访问麦克风，请检查权限设置。");
-            }
+                statusText.innerText = "正在录制...";
+            } catch (err) { alert("麦克风权限被拒绝"); }
         } else {
             mediaRecorder.stop();
             isRecording = false;
             recordBtn.innerText = "🎤 开始录制";
             statusDot.classList.remove('recording');
-            statusText.innerText = "录音已保存";
+            statusText.innerText = "已保存";
         }
     }
 
