@@ -41,7 +41,6 @@
 
         .time-display { font-family: monospace; font-size: 18px; color: var(--primary-gold); }
 
-        /* 片段列表样式 */
         .list-section { background: transparent; padding: 0; border-radius: 0; }
         .snippet-item {
             background: #fff; border: 1px solid var(--light-gold);
@@ -49,12 +48,14 @@
             display: flex; justify-content: space-between; align-items: center;
             text-align: left; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        .snippet-info b { display: block; font-size: 16px; margin-bottom: 4px; color: var(--primary-gold); }
+        .snippet-info { flex: 1; cursor: pointer; }
+        .snippet-info b { display: block; font-size: 16px; margin-bottom: 4px; color: var(--primary-gold); border-bottom: 1px dashed transparent; }
+        .snippet-info b:hover { border-bottom-color: var(--primary-gold); }
         .snippet-info p { font-size: 14px; color: #555; margin: 4px 0; font-style: italic; }
         .snippet-info span { font-size: 11px; color: #aaa; }
         
         .btn-practice { background: var(--primary-gold); color: white; padding: 8px 15px; font-size: 12px; flex: none; width: auto; }
-        .btn-delete { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; margin-left: 5px; width: auto; flex: none; padding: 8px; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
+        .btn-delete { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; margin-left: 5px; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: none; }
 
         .status-dot { height: 10px; width: 10px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 5px; }
         .recording { background-color: #e74c3c; animation: pulse 1s infinite; }
@@ -71,14 +72,11 @@
     <input type="file" id="fileInput" accept="video/*" style="margin: 15px 0;">
 
     <div class="controls">
-        <!-- 一键快退功能 -->
         <div class="row">
             <button class="btn-silver" onclick="skip(-5)">⏪ 快退 5s</button>
             <button class="btn-silver" onclick="skip(-2)">⏪ 快退 2s</button>
         </div>
-
         <div class="time-display"><span id="startTime">0.0</span>s - <span id="endTime">0.0</span>s</div>
-        
         <div class="row">
             <button class="btn-silver" onclick="setPoint('start')">📍 定起点</button>
             <button class="btn-silver" onclick="setPoint('end')">📍 定终点</button>
@@ -111,23 +109,13 @@
 
     window.onload = loadSnippets;
 
-    fileInput.addEventListener('change', (e) => {
-        video.src = URL.createObjectURL(e.target.files[0]);
-    });
+    fileInput.addEventListener('change', (e) => { video.src = URL.createObjectURL(e.target.files[0]); });
 
-    // 快退功能
-    function skip(seconds) {
-        video.currentTime = Math.max(0, video.currentTime + seconds);
-    }
+    function skip(seconds) { video.currentTime = Math.max(0, video.currentTime + seconds); }
 
     function setPoint(type) {
-        if (type === 'start') {
-            start = video.currentTime;
-            document.getElementById('startTime').innerText = start.toFixed(1);
-        } else {
-            end = video.currentTime;
-            document.getElementById('endTime').innerText = end.toFixed(1);
-        }
+        if (type === 'start') { start = video.currentTime; document.getElementById('startTime').innerText = start.toFixed(1); }
+        else { end = video.currentTime; document.getElementById('endTime').innerText = end.toFixed(1); }
     }
 
     function toggleLoop() {
@@ -138,37 +126,29 @@
         if(isLooping) { video.currentTime = start; video.play(); }
     }
 
-    video.addEventListener('timeupdate', () => {
-        if (isLooping && end > start && video.currentTime >= end) {
-            video.currentTime = start;
-        }
-    });
+    video.addEventListener('timeupdate', () => { if (isLooping && end > start && video.currentTime >= end) video.currentTime = start; });
 
     function changeSpeed() { video.playbackRate = document.getElementById('speed').value; }
 
-    // 保存片段及笔记
     function saveSnippet() {
         const name = prompt("给片段起个名字：");
         if (!name) return;
-        const note = prompt("输入学习笔记/关键词（可不填）：") || "";
-
+        const note = prompt("输入学习笔记/台词（可不填）：") || "";
         const snippet = { id: Date.now(), name: name, note: note, start: start, end: end };
         let snippets = JSON.parse(localStorage.getItem('moven_snippets') || '[]');
-        snippets.unshift(snippet); // 新保存的排在最前面
+        snippets.unshift(snippet);
         localStorage.setItem('moven_snippets', JSON.stringify(snippets));
-        
         loadSnippets();
     }
 
     function loadSnippets() {
         const listContainer = document.getElementById('snippetList');
         const snippets = JSON.parse(localStorage.getItem('moven_snippets') || '[]');
-        
         listContainer.innerHTML = snippets.map(s => `
             <div class="snippet-item">
-                <div class="snippet-info">
+                <div class="snippet-info" onclick="editSnippet(${s.id})">
                     <b>${s.name}</b>
-                    ${s.note ? `<p>"${s.note}"</p>` : ''}
+                    <p>${s.note ? s.note : '点击添加备注...'}</p>
                     <span>${s.start.toFixed(1)}s - ${s.end.toFixed(1)}s</span>
                 </div>
                 <div style="display:flex; align-items:center;">
@@ -179,19 +159,35 @@
         `).join('');
     }
 
+    // 新增：编辑功能
+    function editSnippet(id) {
+        let snippets = JSON.parse(localStorage.getItem('moven_snippets') || '[]');
+        const index = snippets.findIndex(s => s.id === id);
+        if (index === -1) return;
+
+        const newName = prompt("修改片段名称：", snippets[index].name);
+        if (newName === null) return; // 点取消不操作
+        
+        const newNote = prompt("修改备注/台词：", snippets[index].note);
+        if (newNote === null) return;
+
+        snippets[index].name = newName;
+        snippets[index].note = newNote;
+        localStorage.setItem('moven_snippets', JSON.stringify(snippets));
+        loadSnippets();
+    }
+
     function practiceSnippet(s, e) {
         start = s; end = e;
         document.getElementById('startTime').innerText = start.toFixed(1);
         document.getElementById('endTime').innerText = end.toFixed(1);
-        isLooping = false; 
-        toggleLoop();
+        isLooping = false; toggleLoop();
     }
 
     function deleteSnippet(id) {
-        if(confirm("确定删除这个片段吗？")) {
+        if(confirm("确定删除吗？")) {
             let snippets = JSON.parse(localStorage.getItem('moven_snippets') || '[]');
-            snippets = snippets.filter(s => s.id !== id);
-            localStorage.setItem('moven_snippets', JSON.stringify(snippets));
+            localStorage.setItem('moven_snippets', JSON.stringify(snippets.filter(s => s.id !== id)));
             loadSnippets();
         }
     }
@@ -200,7 +196,6 @@
         const recordBtn = document.getElementById('recordBtn');
         const statusDot = document.getElementById('recordStatus');
         const statusText = document.getElementById('statusText');
-
         if (!isRecording) {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -208,22 +203,14 @@
                 audioChunks = [];
                 mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
                 mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    audioUrl = URL.createObjectURL(audioBlob);
+                    audioUrl = URL.createObjectURL(new Blob(audioChunks, { type: 'audio/wav' }));
                     document.getElementById('playRecordBtn').disabled = false;
                 };
                 mediaRecorder.start();
-                isRecording = true;
-                recordBtn.innerText = "⏹ 停止录制";
-                statusDot.classList.add('recording');
-                statusText.innerText = "正在录制...";
-            } catch (err) { alert("请允许麦克风访问权限"); }
+                isRecording = true; recordBtn.innerText = "⏹ 停止录制"; statusDot.classList.add('recording'); statusText.innerText = "正在录制...";
+            } catch (err) { alert("麦克风权限被拒绝"); }
         } else {
-            mediaRecorder.stop();
-            isRecording = false;
-            recordBtn.innerText = "🎤 开始录制";
-            statusDot.classList.remove('recording');
-            statusText.innerText = "已保存";
+            mediaRecorder.stop(); isRecording = false; recordBtn.innerText = "🎤 开始录制"; statusDot.classList.remove('recording'); statusText.innerText = "已保存";
         }
     }
 
