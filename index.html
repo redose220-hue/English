@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOVEN Oral Lab Pro Max</title>
+    <title>MOVEN Oral Lab</title>
     <style>
         :root {
             --primary-gold: #D4AF37;
@@ -44,11 +44,7 @@
         #waveform { width: 100%; height: 60px; background: #fff; border-radius: 10px; display: none; margin-bottom: 5px; border: 1px solid var(--light-gold); }
 
         .snippet-item { background: #fff; border: 1px solid var(--light-gold); padding: 12px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
-        .snippet-info b { color: var(--primary-gold); font-size: 16px; }
-        
-        /* 备份按钮样式 */
-        .backup-row { margin-top: 20px; border-top: 1px dashed var(--primary-gold); padding-top: 15px; display: flex; justify-content: space-between; }
-        .btn-small { padding: 5px 10px; font-size: 11px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 5px; }
+        .snippet-info b { color: var(--primary-gold); font-size: 16px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -85,20 +81,14 @@
     <div class="record-section">
         <canvas id="waveform"></canvas>
         <div class="row">
-            <button id="recordBtn" class="btn-record" style="background:#e74c3c; color:white;" onclick="toggleRecord()">🎤 开始录制</button>
+            <button id="recordBtn" style="background:#e74c3c; color:white;" onclick="toggleRecord()">🎤 开始录制</button>
             <button id="playRecordBtn" style="background:#2ecc71; color:white;" onclick="playLastRecord()" disabled>▶️ 回放</button>
         </div>
     </div>
 
     <div id="snippetList" class="list-section"></div>
 
-    <!-- 数据安全区 -->
-    <div class="backup-row">
-        <button class="btn-small" onclick="exportData()">📦 导出备份 (防丢失)</button>
-        <button class="btn-small" onclick="document.getElementById('importFile').click()">📂 恢复数据</button>
-        <input type="file" id="importFile" style="display:none" onchange="importData(event)">
-    </div>
-    <p style="font-size: 10px; color: #bbb; margin-top: 10px;">数据仅存于本地，建议每周备份一次</p>
+    <p style="font-size: 10px; color: #bbb; margin-top: 20px;">MOVEN | 用高效定义自律</p>
 </div>
 
 <script>
@@ -118,12 +108,11 @@
         if (file) video.src = URL.createObjectURL(file);
     });
 
-    // --- 打卡逻辑 ---
+    // 打卡逻辑
     function renderCheckin() {
         const history = JSON.parse(localStorage.getItem('moven_checkin') || '[]');
         const container = document.getElementById('checkinCoins');
         container.innerHTML = '';
-        // 显示最近7天的状态
         for(let i=6; i>=0; i--) {
             const date = new Date();
             date.setDate(date.getDate() - i);
@@ -140,42 +129,12 @@
             history.push(today);
             localStorage.setItem('moven_checkin', JSON.stringify(history));
             renderCheckin();
-            alert("打卡成功！又是优秀的一天！");
         } else {
-            alert("今天已经打过卡啦，明天见！");
+            alert("今日已达成！保持状态哦。");
         }
     }
 
-    // --- 备份与恢复逻辑 ---
-    function exportData() {
-        const data = {
-            snippets: JSON.parse(localStorage.getItem('moven_mobile_snippets') || '[]'),
-            checkin: JSON.parse(localStorage.getItem('moven_checkin') || '[]')
-        };
-        const blob = new Blob([JSON.stringify(data)], {type: 'text/plain'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `MOVEN_Backup_${new Date().toLocaleDateString()}.txt`;
-        a.click();
-    }
-
-    function importData(event) {
-        const file = event.target.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const data = JSON.parse(e.target.result);
-                localStorage.setItem('moven_mobile_snippets', JSON.stringify(data.snippets));
-                localStorage.setItem('moven_checkin', JSON.stringify(data.checkin));
-                loadSnippets(); renderCheckin();
-                alert("数据恢复成功！");
-            } catch(err) { alert("文件格式错误！"); }
-        };
-        reader.readAsText(file);
-    }
-
-    // --- 基础练习逻辑 ---
+    // 基础练习逻辑
     function toggleBlind() {
         isBlind = !isBlind;
         blindOverlay.style.display = isBlind ? 'flex' : 'none';
@@ -201,8 +160,7 @@
 
     function saveSnippet() {
         const name = prompt("片段名称："); if (!name) return;
-        const note = prompt("简单备注（可选）：") || "";
-        const snippet = { id: Date.now(), name, note, start, end };
+        const snippet = { id: Date.now(), name, start, end };
         let s = JSON.parse(localStorage.getItem('moven_mobile_snippets') || '[]');
         s.unshift(snippet);
         localStorage.setItem('moven_mobile_snippets', JSON.stringify(s));
@@ -212,7 +170,7 @@
     function loadSnippets() {
         const list = document.getElementById('snippetList');
         const snippets = JSON.parse(localStorage.getItem('moven_mobile_snippets') || '[]');
-        list.innerHTML = snippets.map(s => `
+        list.innerHTML = snippets.length === 0 ? '<p style="font-size:12px; color:#999;">尚未保存任何练习片段</p>' : snippets.map(s => `
             <div class="snippet-item">
                 <div class="snippet-info" onclick="practiceSnippet(${s.start}, ${s.end})">
                     <b>${s.name}</b><br>
@@ -227,8 +185,7 @@
         start = s; end = e;
         document.getElementById('startTime').innerText = s.toFixed(1);
         document.getElementById('endTime').innerText = e.toFixed(1);
-        isLooping = true;
-        document.getElementById('loopBtn').innerText = "停止循环";
+        isLooping = true; document.getElementById('loopBtn').innerText = "停止循环";
         video.currentTime = s; video.play();
     }
 
@@ -239,10 +196,8 @@
                 if (audioCtx.state === 'suspended') await audioCtx.resume();
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 const source = audioCtx.createMediaStreamSource(stream);
-                analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 128;
-                source.connect(analyser);
-                dataArray = new Uint8Array(analyser.frequencyBinCount);
+                analyser = audioCtx.createAnalyser(); analyser.fftSize = 128;
+                source.connect(analyser); dataArray = new Uint8Array(analyser.frequencyBinCount);
                 mediaRecorder = new MediaRecorder(stream);
                 const chunks = [];
                 mediaRecorder.ondataavailable = e => chunks.push(e.data);
@@ -250,14 +205,11 @@
                     audioUrl = URL.createObjectURL(new Blob(chunks, { type: 'audio/mp4' }));
                     document.getElementById('playRecordBtn').disabled = false;
                 };
-                mediaRecorder.start();
-                isRecording = true; canvas.style.display = 'block';
-                document.getElementById('recordBtn').innerText = "⏹ 停止";
-                drawWave();
+                mediaRecorder.start(); isRecording = true; canvas.style.display = 'block';
+                document.getElementById('recordBtn').innerText = "⏹ 停止"; drawWave();
             } catch (err) { alert("麦克风权限未开启"); }
         } else {
-            mediaRecorder.stop(); isRecording = false;
-            cancelAnimationFrame(animationId);
+            mediaRecorder.stop(); isRecording = false; cancelAnimationFrame(animationId);
             document.getElementById('recordBtn').innerText = "🎤 开始录制";
         }
     }
@@ -270,14 +222,13 @@
         let x = 0;
         for (let i = 0; i < dataArray.length; i++) {
             const barHeight = (dataArray[i] / 255) * canvas.height;
-            ctx.fillStyle = '#D4AF37';
-            ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+            ctx.fillStyle = '#D4AF37'; ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
             x += barWidth + 2;
         }
     }
 
     function playLastRecord() { if (audioUrl) new Audio(audioUrl).play(); }
-    function deleteSnippet(id) { if(confirm("删除片段？")) {
+    function deleteSnippet(id) { if(confirm("确定删除？")) {
         let s = JSON.parse(localStorage.getItem('moven_mobile_snippets') || '[]');
         localStorage.setItem('moven_mobile_snippets', JSON.stringify(s.filter(i => i.id !== id)));
         loadSnippets();
