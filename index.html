@@ -3,236 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOVEN Oral Lab</title>
+    <title>MOVEN Oral Lab | 授权版本</title>
     <style>
-        :root {
-            --primary-gold: #D4AF37;
-            --light-gold: #F4EBD0;
-            --bg-white: #FFFFFF;
-            --text-dark: #333333;
-        }
-
-        body {
-            font-family: -apple-system, system-ui, sans-serif;
-            background-color: var(--bg-white); color: var(--text-dark);
-            margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center;
-        }
-
-        .container { width: 100%; max-width: 500px; text-align: center; }
-        h1 { color: var(--primary-gold); font-size: 22px; letter-spacing: 2px; margin: 10px 0; border-bottom: 1px solid var(--light-gold); padding-bottom: 5px; }
-
-        /* 打卡区 */
-        .checkin-box { background: var(--light-gold); padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid var(--primary-gold); }
-        .days-row { display: flex; justify-content: center; gap: 8px; margin-top: 10px; }
-        .day-coin { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--primary-gold); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--primary-gold); transition: 0.3s; }
-        .day-coin.active { background: var(--primary-gold); color: white; transform: scale(1.1); box-shadow: 0 0 10px rgba(212, 175, 55, 0.5); }
-
-        .video-wrapper { position: relative; width: 100%; border-radius: 15px; overflow: hidden; background: #000; aspect-ratio: 16/9; box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
-        video { width: 100%; height: 100%; }
-        .blind-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.4); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); display: none; align-items: center; justify-content: center; z-index: 10; color: var(--primary-gold); font-weight: bold; }
-
-        .controls, .record-section, .list-section { margin-top: 15px; background: #fafafa; padding: 15px; border-radius: 15px; display: flex; flex-direction: column; gap: 10px; border: 1px solid #eee; }
-
-        button { padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; transition: 0.2s; }
-        .btn-gold { background: var(--primary-gold); color: white; }
-        .btn-silver { background: #E5E4E2; color: var(--text-dark); }
-        .btn-dark { background: #333; color: var(--primary-gold); }
+        /* 保持之前的 White & Gold UI 样式... */
+        :root { --primary-gold: #D4AF37; --light-gold: #F4EBD0; --bg-white: #FFFFFF; --text-dark: #333333; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg-white); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         
-        .row { display: flex; gap: 8px; justify-content: center; width: 100%; flex-wrap: wrap; }
-        .time-display { font-family: monospace; font-size: 18px; color: var(--primary-gold); }
-
-        #waveform { width: 100%; height: 60px; background: #fff; border-radius: 10px; display: none; margin-bottom: 5px; border: 1px solid var(--light-gold); }
-
-        .snippet-item { background: #fff; border: 1px solid var(--light-gold); padding: 12px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
-        .snippet-info b { color: var(--primary-gold); font-size: 16px; cursor: pointer; }
+        /* 授权遮罩层 */
+        #authOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-white); z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .auth-card {
+            width: 80%; max-width: 300px; padding: 30px; border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(212,175,55,0.2); border: 1px solid var(--light-gold); text-align: center;
+        }
+        .auth-input {
+            width: 100%; padding: 12px; margin: 20px 0; border: 1px solid var(--light-gold);
+            border-radius: 10px; text-align: center; font-size: 18px; outline: none;
+        }
+        
+        /* 之前的其他样式代码 (为了节省篇幅，这里略过，实际请使用上方完整样式) */
+        .container { width: 100%; max-width: 500px; text-align: center; display:none; } /* 初始隐藏 */
+        h1 { color: var(--primary-gold); letter-spacing: 3px; border-bottom: 1px solid var(--light-gold); }
+        .checkin-box { background: var(--light-gold); padding: 18px; border-radius: 20px; border: 1px solid rgba(212,175,55,0.3); }
+        /* ... 样式参考前一版 ... */
     </style>
 </head>
 <body>
 
-<div class="container">
+<!-- 🔒 授权验证层 -->
+<div id="authOverlay">
+    <div class="auth-card">
+        <div style="color:var(--primary-gold); font-size:18px; font-weight:bold; letter-spacing:2px;">MOVEN ORAL LAB</div>
+        <div style="color:#999; font-size:12px; margin-top:10px;">请输入您的专属授权码</div>
+        <input type="text" id="passInput" class="auth-input" placeholder="Enter License Key">
+        <button onclick="checkAuth()" style="width:100%; padding:12px; background:var(--primary-gold); color:white; border-radius:10px; border:none; font-weight:bold;">激活实验室</button>
+        <div style="font-size:10px; color:#ccc; margin-top:20px;">一本一码 · 严禁泄露</div>
+    </div>
+</div>
+
+<!-- 📱 主程序容器 (验证通过后显示) -->
+<div class="container" id="mainApp">
     <h1>MOVEN ORAL LAB</h1>
-
-    <!-- 每日打卡区 -->
-    <div class="checkin-box">
-        <div style="font-size: 14px; font-weight: bold; color: var(--primary-gold);">✨ 每日语感磨练打卡 ✨</div>
-        <div id="checkinCoins" class="days-row"></div>
-        <button id="checkinBtn" class="btn-gold" style="margin-top:15px; width:100%;" onclick="doCheckin()">今日已练，点亮金币</button>
-    </div>
-    
-    <div class="video-wrapper">
-        <div id="blindOverlay" class="blind-overlay">🙈 专注听力中...</div>
-        <video id="mainVideo" controls playsinline webkit-playsinline></video>
-    </div>
-    
-    <input type="file" id="fileInput" accept="video/*" style="font-size:12px; margin: 15px 0;">
-
-    <div class="controls">
-        <button class="btn-dark" onclick="toggleBlind()" id="blindBtn">🙈 开启盲听模式</button>
-        <div class="row">
-            <button class="btn-silver" onclick="skip(-2)">⏪ -2s</button>
-            <button class="btn-silver" onclick="setPoint('start')">📍 起点</button>
-            <button class="btn-silver" onclick="setPoint('end')">📍 终点</button>
-        </div>
-        <div class="time-display"><span id="startTime">0.0</span>s - <span id="endTime">0.0</span>s</div>
-        <button id="loopBtn" class="btn-gold" onclick="toggleLoop()">开启循环跟读</button>
-        <button class="btn-gold" style="background:#c5a02e;" onclick="saveSnippet()">💾 保存练习片段</button>
-    </div>
-
-    <div class="record-section">
-        <canvas id="waveform"></canvas>
-        <div class="row">
-            <button id="recordBtn" style="background:#e74c3c; color:white;" onclick="toggleRecord()">🎤 开始录制</button>
-            <button id="playRecordBtn" style="background:#2ecc71; color:white;" onclick="playLastRecord()" disabled>▶️ 回放</button>
-        </div>
-    </div>
-
-    <div id="snippetList" class="list-section"></div>
-
-    <p style="font-size: 10px; color: #bbb; margin-top: 20px;">MOVEN | 用高效定义自律</p>
+    <!-- ... 这里放入上一版的所有 HTML 内容 ... -->
 </div>
 
 <script>
-    const video = document.getElementById('mainVideo');
-    const fileInput = document.getElementById('fileInput');
-    const blindOverlay = document.getElementById('blindOverlay');
-    const canvas = document.getElementById('waveform');
-    const ctx = canvas.getContext('2d');
-    
-    let start = 0, end = 0, isLooping = false, isBlind = false;
-    let mediaRecorder, audioCtx, analyser, dataArray, animationId, audioUrl, isRecording = false;
+    // ==========================================
+    // 🔑 卖家修改区：给每个客户设置不同的密码
+    // ==========================================
+    const LICENSE_KEY = "MOVEN-888-666"; // 你把这个发给张三，就把这里改成张三专属
+    // ==========================================
 
-    window.onload = () => { loadSnippets(); renderCheckin(); };
-
-    fileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) video.src = URL.createObjectURL(file);
-    });
-
-    // 打卡逻辑
-    function renderCheckin() {
-        const history = JSON.parse(localStorage.getItem('moven_checkin') || '[]');
-        const container = document.getElementById('checkinCoins');
-        container.innerHTML = '';
-        for(let i=6; i>=0; i--) {
-            const date = new Date();
-            date.setDate(date.getDate() - i);
-            const dateStr = date.toISOString().split('T')[0];
-            const isActive = history.includes(dateStr);
-            container.innerHTML += `<div class="day-coin ${isActive ? 'active' : ''}">${isActive ? '✔' : i===0?'今':''}</div>`;
-        }
-    }
-
-    function doCheckin() {
-        const today = new Date().toISOString().split('T')[0];
-        let history = JSON.parse(localStorage.getItem('moven_checkin') || '[]');
-        if(!history.includes(today)) {
-            history.push(today);
-            localStorage.setItem('moven_checkin', JSON.stringify(history));
-            renderCheckin();
+    function checkAuth() {
+        const input = document.getElementById('passInput').value.trim();
+        if (input === LICENSE_KEY) {
+            document.getElementById('authOverlay').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            // 验证通过后存入 session，防止刷新页面又要输入
+            sessionStorage.setItem('moven_auth', 'true');
         } else {
-            alert("今日已达成！保持状态哦。");
+            alert("授权码错误，请联系主理人购买。");
         }
     }
 
-    // 基础练习逻辑
-    function toggleBlind() {
-        isBlind = !isBlind;
-        blindOverlay.style.display = isBlind ? 'flex' : 'none';
-        document.getElementById('blindBtn').innerText = isBlind ? "👁️ 关闭盲听" : "🙈 开启盲听";
+    // 自动检查已登录状态
+    if(sessionStorage.getItem('moven_auth') === 'true') {
+        document.getElementById('authOverlay').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
     }
 
-    function skip(s) { video.currentTime = Math.max(0, video.currentTime + s); }
-
-    function setPoint(type) {
-        if (type === 'start') { start = video.currentTime; document.getElementById('startTime').innerText = start.toFixed(1); }
-        else { end = video.currentTime; document.getElementById('endTime').innerText = end.toFixed(1); }
-    }
-
-    function toggleLoop() {
-        isLooping = !isLooping;
-        document.getElementById('loopBtn').innerText = isLooping ? "停止循环" : "开启循环跟读";
-        if(isLooping) { video.currentTime = start; video.play(); }
-    }
-
-    video.addEventListener('timeupdate', () => {
-        if (isLooping && end > start && video.currentTime >= end) video.currentTime = start;
-    });
-
-    function saveSnippet() {
-        const name = prompt("片段名称："); if (!name) return;
-        const snippet = { id: Date.now(), name, start, end };
-        let s = JSON.parse(localStorage.getItem('moven_mobile_snippets') || '[]');
-        s.unshift(snippet);
-        localStorage.setItem('moven_mobile_snippets', JSON.stringify(s));
-        loadSnippets();
-    }
-
-    function loadSnippets() {
-        const list = document.getElementById('snippetList');
-        const snippets = JSON.parse(localStorage.getItem('moven_mobile_snippets') || '[]');
-        list.innerHTML = snippets.length === 0 ? '<p style="font-size:12px; color:#999;">尚未保存任何练习片段</p>' : snippets.map(s => `
-            <div class="snippet-item">
-                <div class="snippet-info" onclick="practiceSnippet(${s.start}, ${s.end})">
-                    <b>${s.name}</b><br>
-                    <small style="color:#999;">${s.start.toFixed(1)}s - ${s.end.toFixed(1)}s</small>
-                </div>
-                <button onclick="deleteSnippet(${s.id})" style="background:none; color:#ff4d4d; border:none; font-size:20px;">×</button>
-            </div>
-        `).join('');
-    }
-
-    function practiceSnippet(s, e) {
-        start = s; end = e;
-        document.getElementById('startTime').innerText = s.toFixed(1);
-        document.getElementById('endTime').innerText = e.toFixed(1);
-        isLooping = true; document.getElementById('loopBtn').innerText = "停止循环";
-        video.currentTime = s; video.play();
-    }
-
-    async function toggleRecord() {
-        if (!isRecording) {
-            try {
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') await audioCtx.resume();
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                const source = audioCtx.createMediaStreamSource(stream);
-                analyser = audioCtx.createAnalyser(); analyser.fftSize = 128;
-                source.connect(analyser); dataArray = new Uint8Array(analyser.frequencyBinCount);
-                mediaRecorder = new MediaRecorder(stream);
-                const chunks = [];
-                mediaRecorder.ondataavailable = e => chunks.push(e.data);
-                mediaRecorder.onstop = () => {
-                    audioUrl = URL.createObjectURL(new Blob(chunks, { type: 'audio/mp4' }));
-                    document.getElementById('playRecordBtn').disabled = false;
-                };
-                mediaRecorder.start(); isRecording = true; canvas.style.display = 'block';
-                document.getElementById('recordBtn').innerText = "⏹ 停止"; drawWave();
-            } catch (err) { alert("麦克风权限未开启"); }
-        } else {
-            mediaRecorder.stop(); isRecording = false; cancelAnimationFrame(animationId);
-            document.getElementById('recordBtn').innerText = "🎤 开始录制";
-        }
-    }
-
-    function drawWave() {
-        animationId = requestAnimationFrame(drawWave);
-        analyser.getByteFrequencyData(dataArray);
-        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        const barWidth = (canvas.width / dataArray.length) * 2;
-        let x = 0;
-        for (let i = 0; i < dataArray.length; i++) {
-            const barHeight = (dataArray[i] / 255) * canvas.height;
-            ctx.fillStyle = '#D4AF37'; ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-            x += barWidth + 2;
-        }
-    }
-
-    function playLastRecord() { if (audioUrl) new Audio(audioUrl).play(); }
-    function deleteSnippet(id) { if(confirm("确定删除？")) {
-        let s = JSON.parse(localStorage.getItem('moven_mobile_snippets') || '[]');
-        localStorage.setItem('moven_mobile_snippets', JSON.stringify(s.filter(i => i.id !== id)));
-        loadSnippets();
-    }}
+    /* ... 后面接上一版的业务逻辑 JS (打卡、视频、录音等) ... */
 </script>
 </body>
 </html>
