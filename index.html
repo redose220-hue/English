@@ -3,79 +3,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOVEN Oral Lab | 授权版本</title>
+    <title>每日语感磨练实验室</title>
     <style>
-        /* 保持之前的 White & Gold UI 样式... */
-        :root { --primary-gold: #D4AF37; --light-gold: #F4EBD0; --bg-white: #FFFFFF; --text-dark: #333333; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg-white); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        :root { --gold: #d4a356; --bg: #fdf6e9; --white: #ffffff; --text: #4a4a4a; }
+        body { background-color: var(--bg); font-family: -apple-system, sans-serif; margin: 0; padding: 15px; color: var(--text); }
         
-        /* 授权遮罩层 */
-        #authOverlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-white); z-index: 9999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .auth-card {
-            width: 80%; max-width: 300px; padding: 30px; border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(212,175,55,0.2); border: 1px solid var(--light-gold); text-align: center;
-        }
-        .auth-input {
-            width: 100%; padding: 12px; margin: 20px 0; border: 1px solid var(--light-gold);
-            border-radius: 10px; text-align: center; font-size: 18px; outline: none;
-        }
+        /* 1. 顶部打卡区域 */
+        .check-in-card { background: var(--white); border: 1px solid #ead6b5; border-radius: 15px; padding: 15px; text-align: center; box-shadow: 0 4px 10px rgba(212,163,86,0.1); margin-bottom: 15px; }
+        .stars { font-size: 20px; margin-bottom: 10px; }
+        .circles { display: flex; justify-content: center; gap: 8px; margin-bottom: 15px; }
+        .circle { width: 30px; height: 30px; border: 1px solid #ead6b5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #ead6b5; }
+        .btn-gold { background: var(--gold); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
+
+        /* 2. 视频与链接框 */
+        .video-container { background: #333; border-radius: 12px; overflow: hidden; margin-bottom: 10px; position: relative; }
+        video { width: 100%; display: block; }
+        .url-input-group { display: flex; gap: 5px; margin-bottom: 10px; }
+        .url-input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; }
+
+        /* 3. 控制按钮组 */
+        .control-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 10px; }
+        .btn-gray { background: #eee; border: none; padding: 8px 0; border-radius: 4px; font-size: 12px; cursor: pointer; }
+        .btn-gray.active { background: var(--gold); color: white; }
+
+        .btn-dark { background: #333; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 10px; font-size: 14px; }
         
-        /* 之前的其他样式代码 (为了节省篇幅，这里略过，实际请使用上方完整样式) */
-        .container { width: 100%; max-width: 500px; text-align: center; display:none; } /* 初始隐藏 */
-        h1 { color: var(--primary-gold); letter-spacing: 3px; border-bottom: 1px solid var(--light-gold); }
-        .checkin-box { background: var(--light-gold); padding: 18px; border-radius: 20px; border: 1px solid rgba(212,175,55,0.3); }
-        /* ... 样式参考前一版 ... */
+        .action-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 10px; }
+        .time-display { text-align: center; color: var(--gold); font-weight: bold; font-size: 20px; margin: 10px 0; }
+
+        .record-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .btn-red { background: #d9534f; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; }
+        .btn-green { background: #5cb85c; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; }
+
+        /* 4. 片段库 */
+        .library-title { font-weight: bold; margin-top: 20px; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
+        .history-item { background: white; padding: 12px; border-radius: 8px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
 
-<!-- 🔒 授权验证层 -->
-<div id="authOverlay">
-    <div class="auth-card">
-        <div style="color:var(--primary-gold); font-size:18px; font-weight:bold; letter-spacing:2px;">MOVEN ORAL LAB</div>
-        <div style="color:#999; font-size:12px; margin-top:10px;">请输入您的专属授权码</div>
-        <input type="text" id="passInput" class="auth-input" placeholder="Enter License Key">
-        <button onclick="checkAuth()" style="width:100%; padding:12px; background:var(--primary-gold); color:white; border-radius:10px; border:none; font-weight:bold;">激活实验室</button>
-        <div style="font-size:10px; color:#ccc; margin-top:20px;">一本一码 · 严禁泄露</div>
+    <!-- 打卡区 -->
+    <div class="check-in-card">
+        <div class="stars">✨ 每日语感磨练打卡 ✨</div>
+        <div class="circles">
+            <div class="circle">✓</div><div class="circle">✓</div><div class="circle">✓</div>
+            <div class="circle">✓</div><div class="circle">✓</div><div class="circle">✓</div><div class="circle">✓</div>
+        </div>
+        <button class="btn-gold">今日已练，点亮金币</button>
     </div>
-</div>
 
-<!-- 📱 主程序容器 (验证通过后显示) -->
-<div class="container" id="mainApp">
-    <h1>MOVEN ORAL LAB</h1>
-    <!-- ... 这里放入上一版的所有 HTML 内容 ... -->
-</div>
+    <!-- 视频源输入 (新功能) -->
+    <div class="url-input-group">
+        <input type="text" id="videoUrl" class="url-input" placeholder="粘贴B站解析链接 (.mp4)">
+        <button class="btn-gray" style="padding:0 15px;" onclick="loadUrlVideo()">加载</button>
+    </div>
+
+    <!-- 视频区 -->
+    <div class="video-container">
+        <video id="player" playsinline controls></video>
+    </div>
+    <input type="file" id="fileIn" hidden onchange="loadLocalVideo(this)">
+    <button class="btn-gray" style="width:100%; margin-bottom:10px;" onclick="document.getElementById('fileIn').click()">📂 选择本地视频文件</button>
+
+    <!-- 倍速区 -->
+    <div class="control-grid">
+        <button class="btn-gray" onclick="setSpeed(0.5, this)">0.5x</button>
+        <button class="btn-gray" onclick="setSpeed(0.8, this)">0.8x</button>
+        <button class="btn-gray active" onclick="setSpeed(1.0, this)">1.0x</button>
+        <button class="btn-gray" onclick="setSpeed(1.2, this)">1.2x</button>
+        <button class="btn-gray" onclick="setSpeed(1.5, this)">1.5x</button>
+    </div>
+
+    <button class="btn-dark">🌓 切换盲听模式</button>
+
+    <!-- 切分与保存 -->
+    <div class="action-row">
+        <button class="btn-gray" onclick="rewind()">⏪ -2s</button>
+        <button class="btn-gray" onclick="setPoint('start')">📍 设为起点</button>
+        <button class="btn-gray" onclick="setPoint('end')">📍 设为终点</button>
+    </div>
+
+    <div class="time-display" id="rangeDisplay">0:00s — 0:00s</div>
+
+    <button class="btn-gold" style="margin-bottom:8px;" onclick="toggleLoop()">🔄 开启循环播放</button>
+    <button class="btn-gold" style="background:#b8860b;" onclick="saveClip()">💾 保存片段到库</button>
+
+    <!-- 录音对比区 -->
+    <div class="record-group">
+        <button class="btn-red" id="recBtn">🎤 开始录音</button>
+        <button class="btn-green">▶️ 回放对比</button>
+    </div>
+
+    <div class="library-title">精华片段库 (点击回放)</div>
+    <div id="history-container"></div>
 
 <script>
-    // ==========================================
-    // 🔑 卖家修改区：给每个客户设置不同的密码
-    // ==========================================
-    const LICENSE_KEY = "MOVEN-888-666"; // 你把这个发给张三，就把这里改成张三专属
-    // ==========================================
+    const player = document.getElementById('player');
+    const rangeDisplay = document.getElementById('rangeDisplay');
+    const LAST_URL_KEY = "MOVEN_LAST_URL";
+    let startTime = 0;
+    let endTime = 0;
+    let isLooping = false;
 
-    function checkAuth() {
-        const input = document.getElementById('passInput').value.trim();
-        if (input === LICENSE_KEY) {
-            document.getElementById('authOverlay').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            // 验证通过后存入 session，防止刷新页面又要输入
-            sessionStorage.setItem('moven_auth', 'true');
-        } else {
-            alert("授权码错误，请联系主理人购买。");
+    // --- 核心改动：格式化为 分:秒s ---
+    function formatTime(s) {
+        const m = Math.floor(s / 60);
+        const sec = Math.floor(s % 60);
+        return `${m}:${sec < 10 ? '0' : ''}${sec}s`;
+    }
+
+    // 加载上次的链接 (LocalStorage)
+    window.onload = () => {
+        const saved = localStorage.getItem(LAST_URL_KEY);
+        if (saved) {
+            document.getElementById('videoUrl').value = saved;
+            player.src = saved;
+        }
+        loadHistory();
+    };
+
+    function loadUrlVideo() {
+        const url = document.getElementById('videoUrl').value;
+        if (url) {
+            player.src = url;
+            localStorage.setItem(LAST_URL_KEY, url);
+            player.play();
         }
     }
 
-    // 自动检查已登录状态
-    if(sessionStorage.getItem('moven_auth') === 'true') {
-        document.getElementById('authOverlay').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'block';
+    function loadLocalVideo(input) {
+        const file = input.files[0];
+        if (file) player.src = URL.createObjectURL(file);
     }
 
-    /* ... 后面接上一版的业务逻辑 JS (打卡、视频、录音等) ... */
+    function setSpeed(rate, btn) {
+        player.playbackRate = rate;
+        document.querySelectorAll('.control-grid .btn-gray').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    function setPoint(type) {
+        if (type === 'start') startTime = player.currentTime;
+        else endTime = player.currentTime;
+        rangeDisplay.innerText = `${formatTime(startTime)} — ${formatTime(endTime)}`;
+    }
+
+    function rewind() { player.currentTime = Math.max(0, player.currentTime - 2); }
+
+    function toggleLoop() {
+        isLooping = !isLooping;
+        if (isLooping) {
+            player.currentTime = startTime;
+            player.play();
+            player.ontimeupdate = () => {
+                if (player.currentTime >= endTime) player.currentTime = startTime;
+            };
+        } else {
+            player.ontimeupdate = null;
+        }
+    }
+
+    // 保存片段到 LocalStorage/IndexedDB 逻辑
+    function saveClip() {
+        const name = `片段 ${formatTime(startTime)}-${formatTime(endTime)}`;
+        let history = JSON.parse(localStorage.getItem('moven_history') || '[]');
+        history.unshift({ name, start: startTime, end: endTime, date: new Date().toLocaleString() });
+        localStorage.setItem('moven_history', JSON.stringify(history));
+        loadHistory();
+    }
+
+    function loadHistory() {
+        const container = document.getElementById('history-container');
+        const history = JSON.parse(localStorage.getItem('moven_history') || '[]');
+        container.innerHTML = history.map((item, index) => `
+            <div class="history-item">
+                <span onclick="playHistory(${item.start}, ${item.end})">📌 ${item.name}</span>
+                <button onclick="deleteHistory(${index})" style="border:none; background:none; color:red;">×</button>
+            </div>
+        `).join('');
+    }
+
+    function playHistory(s, e) {
+        startTime = s; endTime = e;
+        player.currentTime = s;
+        rangeDisplay.innerText = `${formatTime(s)} — ${formatTime(e)}`;
+        player.play();
+    }
+
+    function deleteHistory(index) {
+        let history = JSON.parse(localStorage.getItem('moven_history') || '[]');
+        history.splice(index, 1);
+        localStorage.setItem('moven_history', JSON.stringify(history));
+        loadHistory();
+    }
 </script>
 </body>
 </html>
